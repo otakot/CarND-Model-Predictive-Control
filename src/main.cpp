@@ -17,6 +17,8 @@ using json = nlohmann::json;
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
+double mph2mps(double v) { return v * 0.44704; }
+
 
 constexpr double MAX_TURN_ANGLE = 25.0; // in degrees
 constexpr unsigned ACTUATORS_LATENCY = 100; // in milliseconds
@@ -113,18 +115,34 @@ Eigen::VectorXd GetCurrentState(const double velocity, const double cte, const d
  return state;
 }
 
+const Eigen::VectorXd GetLatencyCompensatedState(const double current_velocity,
+  const double current_cte, const double current_epsi, const double current_delta,
+  const double current_acceleration, const double latency) {
+
+ // use the steering angle as orientation for predicting car position after 'latency' time,
+ // starting from coordinates {0,0}, since we are in car coordinate system now
+ double psi = current_delta;
+ double px = current_velocity * cos(psi) * latency;
+ double py = current_velocity * sin(psi) * latency;
+ double cte = current_cte + current_velocity * sin(current_epsi) * latency;
+ double epsi = current_epsi + current_velocity * current_delta * latency/Lf;
+ psi = psi + current_velocity * current_delta * latency/Lf;
+ double velocity = current_velocity + current_acceleration * latency;
+
+ Eigen::VectorXd state(6);
+ // in car coordinate system current position and orientation are always 0
+ state << px, py, psi, velocity, cte, epsi;
+ return state;
+}
+
 
 int main() {
   uWS::Hub h;
 
   // MPC is initialized here!
-  MPC mpc(ACTUATORS_LATENCY);
+  MPC mpc;
 
-  // index of vehicle state vector in computed mpc solution that represents
-  // the pseudo current state with respect to actuators latency
-  const unsigned pseudo_current_state_index = mpc.GetPseudoCurrentStateIndex();
-
-  h.onMessage([&mpc, &pseudo_current_state_index](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -143,7 +161,11 @@ int main() {
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
-          double v = j[1]["speed"];
+          double velocity = j[1]["speed"];
+          velocity = mph2mps(velocity); //convert from miles per hour to miles per second
+
+          double delta = j[1]["steering_angle"]; // Note! in simulator yaw  values. need negation before usage!
+          double acceleration = j[1]["throttle"];
 
 
           // transform trajectory points from map coordinate system to vehicle coordinate system
@@ -160,21 +182,21 @@ int main() {
           // calculate ephi
           const double epsi = CalculateOrientationError(coeffs);
 
-          const Eigen::VectorXd current_state = GetCurrentState(v, cte, epsi);
+          // steering angle to compensate inverter yaw of simulator
+          const Eigen::VectorXd latency_compensated_state = GetLatencyCompensatedState(
+            velocity, cte, epsi, -delta, acceleration, ACTUATORS_LATENCY/1000);
 
           // compute optimal trajectory for vehicle
-          const MpcOutput mpc_output = mpc.Solve(current_state, coeffs);
+          const MpcOutput mpc_output = mpc.Solve(latency_compensated_state, coeffs);
 
 
           json msgJson;
 
-          // steering angle with respect to actuators latency, in [-1, 1] scale
-          const double steer_value = mpc_output.GetSteeringAngle(pseudo_current_state_index);
           // normalize calculated steer value (in radians) to [-1, 1] scale before sending back to simulator.
-          msgJson["steering_angle"] = steer_value/(deg2rad(MAX_TURN_ANGLE));
+          msgJson["steering_angle"] = mpc_output.delta/(deg2rad(MAX_TURN_ANGLE));
 
-          // level of throttle with respect to actuators latency, in [-1, 1] scale
-          msgJson["throttle"] = mpc_output.GetThrottle(pseudo_current_state_index);
+          // level of throttle, in [-1, 1] scale
+          msgJson["throttle"] = mpc_output.acceleration;
 
           // predicted trajectory points(in vehicle's coordinate system), will be displayes as Green line in simulator
           msgJson["mpc_x"] = mpc_output.X;

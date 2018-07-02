@@ -42,12 +42,12 @@ Values for parameter **N** smaller than 20 resulted in a jerky behaviour of the 
 ### Latency compensation
 
 Additional requirement to implemented model was to handle the control actuations latency (with predefined value 100ms), as an emulation of delay between triggering the control actuators and start of actual effect of on the system. 
-In such enviroment the control model whicj does not take the actuations latency into account, is not able to properly control the car (sudden oscillations and/or incorect predicted rajectory occur). In order to 
-handle emulated actuations latency I used following approach: the position of the car is estimated based on its current speed and orientation by propagating the current position of the car forward until the timestep  when actuations are expected to have an effect(100ms). The optimal trajectory is then computed starting from that position.
+In such enviroments the control model which does not take the actuations latency into account, is not able to properly control the car (sudden oscillations and/or incorect predicted rajectory occur). In order to 
+properly handle emulated actuations latency I used following approach: the position of the car is  estimated from its current position (based on its speed and steering angle (delta)) forward until the timestep  when actuations are expected to have an effect (100ms). And then optimal trajectory is computed starting from that position.
 
 ### Additional parameters
 
-Additionaly, to make the behaviour of the car on the road smoother and comfortable for potential passengers I have introduced **STEERING_TRANSITION_SMOOTHNESS** and **ACCELERATION_SMOOTHNESS** parameters with empirically selected values 700 and 20 accordingly. These are applied dutring the calculation of cost function.
+Additionaly, to make the behaviour of the car on the road smoother and comfortable for potential passengers I have introduced **STEERING_TRANSITION_SMOOTHNESS** and **ACCELERATION_SMOOTHNESS** parameters with empirically selected values 600 and 15 accordingly. These are applied dutring the calculation of cost function.
 
 ---
 

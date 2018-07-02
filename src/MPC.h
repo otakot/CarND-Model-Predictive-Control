@@ -9,7 +9,7 @@ using namespace std;
 constexpr std::size_t N = 20; // number of steps
 constexpr double dt = 0.05; // duration of one step, in seconds
 
-
+constexpr double ref_v = 25; // refernce vehicle velocity, in meters per second
 // This value assumes the model presented in the classroom is used.
 //
 // It was obtained by measuring the radius formed by running the vehicle in the
@@ -21,8 +21,6 @@ constexpr double dt = 0.05; // duration of one step, in seconds
 //
 // This is the length from front to CoG that has a similar radius.
 constexpr double Lf = 2.67;
-
-constexpr double ref_v = 40; // vehicle velocity
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -36,8 +34,8 @@ constexpr size_t epsi_start = cte_start + N;
 constexpr size_t delta_start = epsi_start + N;
 constexpr size_t a_start = delta_start + N - 1;
 
-constexpr unsigned STEERING_TRANSITION_SMOOTHNESS = 700;
-constexpr unsigned ACCELERATION_SMOOTHNESS = 20;
+constexpr unsigned STEERING_TRANSITION_SMOOTHNESS = 600;
+constexpr unsigned ACCELERATION_SMOOTHNESS = 15;
 
 
 
@@ -46,38 +44,19 @@ struct MpcOutput {
 
     vector<double> X;
     vector<double> Y;
-    vector<double> DELTA; // orientation change
-    vector<double> A; // acceleration
-
-    /*
-     * Return the predicted Steering Angle for given delay, in milliseconds
-     */
-    double GetSteeringAngle(unsigned delayed_state_index) const{
-      // orientation angle scale in simulator is inverted to calculated by controller
-      return -DELTA.at(delayed_state_index);
-    }
-
-    double GetThrottle(unsigned delayed_state_index) const{
-      return A.at(delayed_state_index);
-    }
+    double delta; // orientation change
+    double acceleration;
 };
 
 class MPC {
  public:
-  MPC(unsigned actuators_latency);
-
+  MPC();
   virtual ~MPC();
 
   // Solve the model given an initial state and polynomial coefficients.
   // Return the first actuatotions.
   MpcOutput Solve(const Eigen::VectorXd& state, const Eigen::VectorXd& coeffs);
 
-  unsigned GetPseudoCurrentStateIndex() const;
-
-  private:
-    // index of vehicle state vector in computed mpc solution that represents
-    // the pseudo current state with respect to actuators latency
-    unsigned compensated_state_index_;
 };
 
 #endif /* MPC_H */

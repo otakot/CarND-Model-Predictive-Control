@@ -108,15 +108,9 @@ class FG_eval {
 //
 // MPC class definition implementation.
 //
-MPC::MPC(unsigned actuators_latency) {
- compensated_state_index_ = actuators_latency/1000/dt;
-}
+MPC::MPC() {}
 
 MPC::~MPC() {}
-
-unsigned MPC::GetPseudoCurrentStateIndex() const{
- return compensated_state_index_;
-}
 
 MpcOutput MPC::Solve(const Eigen::VectorXd& state, const Eigen::VectorXd& coeffs) {
   size_t i;
@@ -217,16 +211,16 @@ MpcOutput MPC::Solve(const Eigen::VectorXd& state, const Eigen::VectorXd& coeffs
   bool ok = true;
   ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
   auto cost = solution.obj_value;
-  std::cout << " Prediction status: " << ok << ", Cost value: " << cost << std::endl;
+  std::cout << "Trajectory prediction status: " << ok << ", Cost value: " << cost << std::endl;
 
   MpcOutput result;
+  result.delta = - solution.x[delta_start]; // coz yaw value is negated in simulator
+  result.acceleration = solution.x[a_start];
+  cout << "Predicted actuators: steer value: " << result.delta << ", throttle: " << result.acceleration << endl;
   for (auto i = 0; i < N-1 ; ++i){
-    cout << "Predicted trajectory point " << i << ": {" << solution.x[x_start+i] << ", " << solution.x[y_start+i] << "}" <<
-      ", steering value: " << -solution.x[delta_start+i] << ", acceleration: " << solution.x[a_start+i] << endl;
+    cout << "Trajectory point " << i << ": {" << solution.x[x_start+i] << ", " << solution.x[y_start+i] << "}" << endl;
     result.X.push_back(solution.x[x_start+i]);
     result.Y.push_back(solution.x[y_start+i]);
-    result.DELTA.push_back(solution.x[delta_start+i]);
-    result.A.push_back(solution.x[a_start+i]);
   }
 
   return result;
