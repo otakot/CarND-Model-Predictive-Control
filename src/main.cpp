@@ -108,13 +108,6 @@ double CalculateOrientationError(const Eigen::VectorXd& coeffs) {
   return -atan(coeffs[1]);
 }
 
-Eigen::VectorXd GetCurrentState(const double velocity, const double cte, const double epsi) {
- Eigen::VectorXd state(6);
- // in car coordinate system current position and orientation are always 0
- state << 0, 0, 0, velocity, cte, epsi;
- return state;
-}
-
 const Eigen::VectorXd GetLatencyCompensatedState(const double current_velocity,
   const double current_cte, const double current_epsi, const double current_delta,
   const double current_acceleration, const double latency) {
@@ -182,7 +175,7 @@ int main() {
           // calculate ephi
           const double epsi = CalculateOrientationError(coeffs);
 
-          // steering angle to compensate inverter yaw of simulator
+          // steering angle is negated to compensate inverter yaw of simulator
           const Eigen::VectorXd latency_compensated_state = GetLatencyCompensatedState(
             velocity, cte, epsi, -delta, acceleration, ACTUATORS_LATENCY/1000);
 
