@@ -29,11 +29,11 @@ The reference trajectory for drivng the car on a track is provided by simulator 
 
 ## How MPC Controller tunning parameters were selected
 
-###Prediction Horizon
+### Prediction Horizon
 
 The Prediction Horizom is the duration over which controller predicts future states. It implies the number of timesteps N and duration of each timestep dt. This means that bigger values of **N** and/or smaller values of **dt** will result in higher computational costs.
 
-Selection of optimal value for N and dt parameters was done empirically. Several values between 15 and 25 have beed tried for N parameter, and between 0.03 and 0.1 for dt parameter. The best result was achieved with N=20 and dt=0.05, resulting in a prediction horizom of 1 second. Additionally value 0.05 for dt parameter allowed to syncronize the timesteps with defined  control actuatoations latency (0.1sec)
+Selection of optimal value for N and dt parameters was done empirically. Several values between 15 and 25 have beed tried for **N** parameter, and between 0.03 and 0.1 for **dt** parameter. The best result was achieved with N=20 and dt=0.05, resulting in a prediction horizom of 1 second. Additionally value 0.05 for dt parameter allowed to syncronize the timesteps with defined  control actuatoations latency (0.1sec)
 
 Values for **dt** bigger than 0.05 did not preform well, because controller was not able to react in time on dynamically chaning curvatures of the track (was highly noticable in sharp curves). On other hand values smaller than 0.05 caused too high computational load on the system. 
 
@@ -47,7 +47,7 @@ handle emulated actuations latency I used following approach: the position of th
 
 ### Additional parameters
 
-Additionaly to make the behaviour of the car on the road smoother I have introduced **STEERING_TRANSITION_SMOOTHNESS** and **ACCELERATION_SMOOTHNESS** parameters with empirically selected values 500 and 20 accordingly. These are applied dutring the calculation of cost function.
+Additionaly, to make the behaviour of the car on the road smoother and comfortable for potential passengers I have introduced **STEERING_TRANSITION_SMOOTHNESS** and **ACCELERATION_SMOOTHNESS** parameters with empirically selected values 500 and 20 accordingly. These are applied dutring the calculation of cost function.
 
 ---
 
@@ -94,5 +94,5 @@ Alternatively build script has been included to simplify this process, it can be
    ./mpc
    
 2. Start downloaded Term 2 Simulator application. Select requried resolution and press Play button.
-   Switch to 'Project 3: MPC Controller' using right arrow an press Select button.
-   To run the filter press Start button. 
+   Switch to 'Project 5: MPC Controller' using right arrow an press Select button.
+   To run the simulation press Start button. 
