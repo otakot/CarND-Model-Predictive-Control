@@ -22,7 +22,7 @@ constexpr double dt = 0.05; // duration of one step, in seconds
 // This is the length from front to CoG that has a similar radius.
 constexpr double Lf = 2.67;
 
-constexpr double ref_v = 35; // vehicle velocity, mph
+constexpr double ref_v = 40; // vehicle velocity
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -36,7 +36,7 @@ constexpr size_t epsi_start = cte_start + N;
 constexpr size_t delta_start = epsi_start + N;
 constexpr size_t a_start = delta_start + N - 1;
 
-constexpr unsigned STEERING_TRANSITION_SMOOTHNESS = 500;
+constexpr unsigned STEERING_TRANSITION_SMOOTHNESS = 700;
 constexpr unsigned ACCELERATION_SMOOTHNESS = 20;
 
 
@@ -72,10 +72,12 @@ class MPC {
   // Return the first actuatotions.
   MpcOutput Solve(const Eigen::VectorXd& state, const Eigen::VectorXd& coeffs);
 
-  unsigned GetDelayedStateIndex() const;
+  unsigned GetPseudoCurrentStateIndex() const;
 
   private:
-    unsigned delated_state_index_;
+    // index of vehicle state vector in computed mpc solution that represents
+    // the pseudo current state with respect to actuators latency
+    unsigned compensated_state_index_;
 };
 
 #endif /* MPC_H */

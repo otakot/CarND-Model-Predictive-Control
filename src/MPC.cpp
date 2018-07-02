@@ -109,13 +109,13 @@ class FG_eval {
 // MPC class definition implementation.
 //
 MPC::MPC(unsigned actuators_latency) {
- delated_state_index_ = actuators_latency/(dt*1000);
+ compensated_state_index_ = actuators_latency/1000/dt;
 }
 
 MPC::~MPC() {}
 
-unsigned MPC::GetDelayedStateIndex() const{
- return delated_state_index_;
+unsigned MPC::GetPseudoCurrentStateIndex() const{
+ return compensated_state_index_;
 }
 
 MpcOutput MPC::Solve(const Eigen::VectorXd& state, const Eigen::VectorXd& coeffs) {
@@ -222,7 +222,7 @@ MpcOutput MPC::Solve(const Eigen::VectorXd& state, const Eigen::VectorXd& coeffs
   MpcOutput result;
   for (auto i = 0; i < N-1 ; ++i){
     cout << "Predicted trajectory point " << i << ": {" << solution.x[x_start+i] << ", " << solution.x[y_start+i] << "}" <<
-      ", steering angle: " << -solution.x[delta_start+i] << ", acceleration: " << solution.x[a_start+i] << endl;
+      ", steering value: " << -solution.x[delta_start+i] << ", acceleration: " << solution.x[a_start+i] << endl;
     result.X.push_back(solution.x[x_start+i]);
     result.Y.push_back(solution.x[y_start+i]);
     result.DELTA.push_back(solution.x[delta_start+i]);

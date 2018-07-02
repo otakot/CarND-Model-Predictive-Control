@@ -120,10 +120,11 @@ int main() {
   // MPC is initialized here!
   MPC mpc(ACTUATORS_LATENCY);
 
-  // index of state vector in predicted MPC solution that reflects the matches of actuators
-  const unsigned delayed_state_index = mpc.GetDelayedStateIndex();
+  // index of vehicle state vector in computed mpc solution that represents
+  // the pseudo current state with respect to actuators latency
+  const unsigned pseudo_current_state_index = mpc.GetPseudoCurrentStateIndex();
 
-  h.onMessage([&mpc, &delayed_state_index](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&mpc, &pseudo_current_state_index](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -168,12 +169,12 @@ int main() {
           json msgJson;
 
           // steering angle with respect to actuators latency, in [-1, 1] scale
-          const double steer_value = mpc_output.GetSteeringAngle(delayed_state_index);
+          const double steer_value = mpc_output.GetSteeringAngle(pseudo_current_state_index);
           // normalize calculated steer value (in radians) to [-1, 1] scale before sending back to simulator.
           msgJson["steering_angle"] = steer_value/(deg2rad(MAX_TURN_ANGLE));
 
           // level of throttle with respect to actuators latency, in [-1, 1] scale
-          msgJson["throttle"] = mpc_output.GetThrottle(delayed_state_index);
+          msgJson["throttle"] = mpc_output.GetThrottle(pseudo_current_state_index);
 
           // predicted trajectory points(in vehicle's coordinate system), will be displayes as Green line in simulator
           msgJson["mpc_x"] = mpc_output.X;
@@ -193,7 +194,7 @@ int main() {
 
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          //std::cout << msg << std::endl;
           // Latency.  The purpose is to mimic real driving conditions where
           // the car does actuate the commands instantly.
           this_thread::sleep_for(chrono::milliseconds(ACTUATORS_LATENCY));

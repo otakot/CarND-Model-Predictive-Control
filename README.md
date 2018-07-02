@@ -47,7 +47,7 @@ handle emulated actuations latency I used following approach: the position of th
 
 ### Additional parameters
 
-Additionaly, to make the behaviour of the car on the road smoother and comfortable for potential passengers I have introduced **STEERING_TRANSITION_SMOOTHNESS** and **ACCELERATION_SMOOTHNESS** parameters with empirically selected values 500 and 20 accordingly. These are applied dutring the calculation of cost function.
+Additionaly, to make the behaviour of the car on the road smoother and comfortable for potential passengers I have introduced **STEERING_TRANSITION_SMOOTHNESS** and **ACCELERATION_SMOOTHNESS** parameters with empirically selected values 700 and 20 accordingly. These are applied dutring the calculation of cost function.
 
 ---
 
